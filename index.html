@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Suellen · 15 anos</title>
+
+  <!-- Prévia do link no WhatsApp (troque SEU-USUARIO pelo seu usuário do GitHub) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Suellen · 15 anos">
+  <meta property="og:description" content="Você é nosso convidado! Toque para abrir o convite e confirmar sua presença.">
+  <meta property="og:image" content="https://SEU-USUARIO.github.io/convite-suellen/img/preview.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://SEU-USUARIO.github.io/convite-suellen/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2f4637">
+
+  <link rel="preload" href="fonts/great-vibes.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body class="fechado">
+
+  <!-- vaga-lumes (desenhados pelo script) -->
+  <canvas id="vagalumes" aria-hidden="true"></canvas>
+
+  <!-- ============ PORTÃO DE ENTRADA ============ -->
+  <div class="portao" id="portao">
+    <div class="porta porta-esq"><div class="porta-moldura"></div></div>
+    <div class="porta porta-dir"><div class="porta-moldura"></div></div>
+
+    <button type="button" class="selo" id="btn-abrir" aria-label="Abrir o convite">
+      <span class="selo-anel">
+        <span class="selo-letra">S</span>
+        <span class="selo-num">XV</span>
+      </span>
+      <span class="selo-texto">toque para abrir</span>
+    </button>
+  </div>
+
+  <!-- ============ CAPA ============ -->
+  <header class="capa">
+    <div class="arco">
+      <img class="arco-img" src="img/arco.svg" alt="" aria-hidden="true">
+
+      <!-- borboletas -->
+      <div class="borboleta b1" aria-hidden="true"><svg viewBox="0 0 40 32"><use href="#borboleta"/></svg></div>
+      <div class="borboleta b2" aria-hidden="true"><svg viewBox="0 0 40 32"><use href="#borboleta"/></svg></div>
+      <div class="borboleta b3" aria-hidden="true"><svg viewBox="0 0 40 32"><use href="#borboleta"/></svg></div>
+
+      <h1 class="nome revelar">Suellen</h1>
+    </div>
+
+    <div class="capa-conteudo">
+      <p class="subtitulo revelar">juntamente com seus pais, Júnior e Joyce,<br>convidam para a comemoração dos seus</p>
+
+      <p class="idade revelar"><span class="idade-num">15</span> <span class="idade-anos">anos</span></p>
+
+      <img class="ramo revelar" src="img/ramo.svg" alt="" aria-hidden="true">
+
+      <p class="data revelar" id="texto-data"></p>
+      <p class="local-curto revelar" id="texto-endereco"></p>
+
+      <blockquote class="versiculo revelar">
+        <p>“Eu te louvo porque me fizeste de modo especial e admirável.”</p>
+        <cite>Salmos 139:14</cite>
+      </blockquote>
+
+      <nav class="botoes revelar" aria-label="Detalhes do convite">
+        <a href="#local" class="botao-icone">
+          <span class="circulo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7.2 7-12.5A7 7 0 0 0 5 9.5C5 14.8 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.6"/></svg>
+          </span>
+          <span class="legenda">Local</span>
+        </a>
+        <a href="#confirmar" class="botao-icone">
+          <span class="circulo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M7.5 12.3l3 3 6-6.3"/></svg>
+          </span>
+          <span class="legenda">Confirmar</span>
+        </a>
+        <a href="#presentes" class="botao-icone">
+          <span class="circulo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9" width="17" height="4" rx="1"/><path d="M5 13v8h14v-8M12 9v12"/><path d="M12 9c-1.5-3.5-6-4-6-1.5S9.5 9 12 9zM12 9c1.5-3.5 6-4 6-1.5S14.5 9 12 9z"/></svg>
+          </span>
+          <span class="legenda">Presentes</span>
+        </a>
+      </nav>
+
+      <div class="contagem revelar" id="contagem" aria-live="off">
+        <div><strong id="cd-dias">--</strong><span>dias</span></div>
+        <div><strong id="cd-horas">--</strong><span>horas</span></div>
+        <div><strong id="cd-min">--</strong><span>min</span></div>
+        <div><strong id="cd-seg">--</strong><span>seg</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ LOCAL ============ -->
+    <section id="local" class="cartao revelar">
+      <img class="ramo ramo-titulo" src="img/ramo.svg" alt="" aria-hidden="true">
+      <h2>Local</h2>
+      <p class="cartao-texto destaque" id="local-nome"></p>
+      <p class="cartao-texto" id="local-endereco"></p>
+      <p class="cartao-texto pequeno" id="local-data"></p>
+      <div class="mapa" id="mapa"></div>
+      <a class="botao" id="link-mapa" target="_blank" rel="noopener">Abrir no Google Maps</a>
+    </section>
+
+    <!-- ============ CONFIRMAÇÃO ============ -->
+    <section id="confirmar" class="cartao revelar">
+      <img class="ramo ramo-titulo" src="img/ramo.svg" alt="" aria-hidden="true">
+      <h2>Confirme sua presença</h2>
+      <p class="cartao-texto" id="texto-prazo"></p>
+
+      <form id="form-rsvp" class="formulario" novalidate>
+        <label class="campo">
+          <span class="rotulo">Seu nome completo</span>
+          <input type="text" name="nome" required autocomplete="name" placeholder="Ex.: Maria da Silva">
+        </label>
+
+        <label class="campo">
+          <span class="rotulo">WhatsApp</span>
+          <input type="tel" name="telefone" required autocomplete="tel" inputmode="tel" placeholder="(88) 9 9999-9999">
+        </label>
+
+        <fieldset class="campo escolha">
+          <legend class="rotulo">Você vai?</legend>
+          <div class="pilulas">
+            <label class="pilula"><input type="radio" name="presenca" value="Sim" checked><span>Sim, estarei lá!</span></label>
+            <label class="pilula"><input type="radio" name="presenca" value="Não"><span>Não poderei ir</span></label>
+          </div>
+        </fieldset>
+
+        <div id="bloco-pessoas" class="bloco-pessoas">
+          <div class="campo">
+            <label class="rotulo" for="inp-quantidade">Quantas pessoas no total (contando você)?</label>
+            <div class="contador">
+              <button type="button" class="contador-btn" id="btn-menos" aria-label="Diminuir">−</button>
+              <div class="contador-valor">
+                <input type="number" name="quantidade" id="inp-quantidade" value="1" min="1" inputmode="numeric">
+                <span class="contador-sufixo" id="sufixo-quantidade">pessoa</span>
+              </div>
+              <button type="button" class="contador-btn" id="btn-mais" aria-label="Aumentar">+</button>
+            </div>
+          </div>
+
+          <label class="campo" id="bloco-acompanhantes" hidden>
+            <span class="rotulo">Nome dos acompanhantes</span>
+            <textarea name="acompanhantes" rows="2" placeholder="Um nome por linha"></textarea>
+          </label>
+        </div>
+
+        <label class="campo">
+          <span class="rotulo">Recado para a Suellen <em class="opcional">(opcional)</em></span>
+          <textarea name="recado" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <!-- campo invisível anti-robô: pessoas não preenchem -->
+        <input type="text" name="site" class="isca" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <p class="erro" id="erro-form" role="alert" hidden></p>
+        <button type="submit" class="botao" id="btn-enviar">Enviar confirmação</button>
+      </form>
+
+      <div id="sucesso" class="sucesso" hidden>
+        <p class="sucesso-titulo">Obrigado!</p>
+        <p class="cartao-texto" id="sucesso-texto"></p>
+        <a class="botao botao-claro" id="link-whatsapp" target="_blank" rel="noopener">Avisar também pelo WhatsApp</a>
+      </div>
+
+      <div id="encerrado" class="sucesso" hidden>
+        <p class="cartao-texto">O prazo de confirmação terminou. Fale com a família pelo WhatsApp:</p>
+        <a class="botao" id="link-whatsapp-encerrado" target="_blank" rel="noopener">Falar no WhatsApp</a>
+      </div>
+    </section>
+
+    <!-- ============ PRESENTES ============ -->
+    <section id="presentes" class="cartao revelar">
+      <img class="ramo ramo-titulo" src="img/ramo.svg" alt="" aria-hidden="true">
+      <h2>Presentes</h2>
+      <p class="cartao-texto">Sua presença é o nosso maior presente! Mas, se quiser presentear a Suellen, deixamos algumas sugestões:</p>
+
+      <ul class="lista-presentes" id="lista-presentes"></ul>
+
+      <div class="pix" id="bloco-pix">
+        <p class="cartao-texto">Se preferir, pode contribuir via PIX:</p>
+        <p class="pix-chave" id="pix-chave"></p>
+        <p class="pix-nome" id="pix-nome"></p>
+        <button type="button" class="botao" id="btn-pix">Copiar chave PIX</button>
+        <p class="aviso-copiado" id="aviso-copiado" hidden>Chave PIX copiada!</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p class="rodape-texto">Esperamos você!</p>
+    <img class="jardim" src="img/jardim.svg" alt="" aria-hidden="true">
+  </footer>
+
+  <!-- desenho da borboleta, reaproveitado pelas três -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="borboleta" viewBox="0 0 40 32">
+      <g class="asa asa-esq">
+        <path d="M19 15 C12 2 1 0 2 9 C3 15 10 16 19 16Z" fill="currentColor"/>
+        <path d="M19 17 C11 18 5 24 9 29 C13 32 18 24 19 18Z" fill="currentColor" opacity=".8"/>
+        <circle cx="8" cy="8" r="1.8" fill="#fff" opacity=".7"/>
+      </g>
+      <g class="asa asa-dir">
+        <path d="M21 15 C28 2 39 0 38 9 C37 15 30 16 21 16Z" fill="currentColor"/>
+        <path d="M21 17 C29 18 35 24 31 29 C27 32 22 24 21 18Z" fill="currentColor" opacity=".8"/>
+        <circle cx="32" cy="8" r="1.8" fill="#fff" opacity=".7"/>
+      </g>
+      <rect x="19.2" y="10" width="1.6" height="13" rx=".8" fill="#5a4a3a"/>
+    </symbol>
+  </svg>
+
+  <script src="config.js?v=4"></script>
+  <script src="script.js?v=4"></script>
+</body>
+</html>

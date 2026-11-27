@@ -223,7 +223,7 @@
   if (!codigo) {
     semConfirmacao();
   } else {
-    fetch(`${CONFIG.urlPlanilha}?c=${encodeURIComponent(codigo)}`)
+    fetch(`${CONFIG.urlPlanilha}?codigo=${encodeURIComponent(codigo)}`)
       .then((r) => r.json())
       .then((info) => {
         if (info.ok && Array.isArray(info.pessoas) && info.pessoas.length) montarLista(info);

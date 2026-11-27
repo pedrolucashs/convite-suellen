@@ -88,9 +88,10 @@ function novoCodigo_() {
 //  Site → planilha
 // ---------------------------------------------------------------------
 
-// GET ?c=CODIGO → nome do convite, lista de pessoas e respostas anteriores
+// GET ?codigo=XXXXXX → nome do convite, lista de pessoas e respostas anteriores
+// (o parâmetro NÃO pode se chamar "c": o Google reserva "c" e "sid" e responde "arquivo não existe")
 function doGet(e) {
-  const codigo = String((e && e.parameter && e.parameter.c) || "").trim().toUpperCase();
+  const codigo = String((e && e.parameter && e.parameter.codigo) || "").trim().toUpperCase();
   if (!codigo) {
     return ContentService.createTextOutput("Convite da Suellen: recebendo confirmações ✔");
   }

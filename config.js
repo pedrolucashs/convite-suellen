@@ -10,7 +10,7 @@ const CONFIG = {
 
   // Local
   localNome: "NOME DO SALÃO / ESPAÇO",
-  endereco: "Rua Alegre, 123 – Cidade Brasileira", // TROCAR pelo endereço real
+  endereco: "Rua Faz de Conta, 123 – Cidade que fica no Brasi", // TROCAR pelo endereço real
   // Link "Compartilhar" do Google Maps (ex.: https://maps.app.goo.gl/xxxx)
   linkMapa: "https://maps.google.com/?q=Rua+Alegre+123",
 

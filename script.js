@@ -171,8 +171,11 @@
   function montarLista(info) {
     convite = info;
     $("lista-carregando").hidden = true;
-    $("portao-nome").textContent = info.nome;
-    $("portao-para").hidden = false;
+    // o portão pode já ter sido removido (a pessoa abriu antes da planilha responder)
+    if ($("portao-nome")) {
+      $("portao-nome").textContent = info.nome;
+      $("portao-para").hidden = false;
+    }
     $("saudacao").textContent = `Olá, ${info.nome}!`;
     $("saudacao").hidden = false;
 
@@ -230,7 +233,9 @@
         if (info.ok && Array.isArray(info.pessoas) && info.pessoas.length) montarLista(info);
         else semConfirmacao("Não encontramos este convite. Confira se abriu o link completo que você recebeu pelo WhatsApp.");
       })
-      .catch(() => {
+      .catch((erro) => {
+        console.error("Convite:", erro);
+        $("lista-carregando").hidden = false;
         $("lista-carregando").textContent =
           "Não foi possível carregar seu convite agora. Recarregue a página ou fale com a família pelo WhatsApp.";
         $("btn-enviar").disabled = true;

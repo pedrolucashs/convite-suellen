@@ -63,10 +63,11 @@ function gerarCodigos() {
     // com telefone: abre direto a conversa; sem telefone: o WhatsApp pede para escolher o contato
     let fone = String(linha[COL.FONE - 1]).replace(/\D/g, "");
     if (fone && fone.length <= 11) fone = "55" + fone;
-    const destino = fone ? "https://wa.me/" + fone : "https://wa.me/";
+    // api.whatsapp.com em vez de wa.me: o wa.me estraga emojis (vira "�") no WhatsApp Web/Desktop
+    const destino = "https://api.whatsapp.com/send?" + (fone ? "phone=" + fone + "&" : "");
 
     aba.getRange(r, COL.LINK).setValue(link);
-    formula_(aba.getRange(r, COL.ENVIAR), '=HYPERLINK("' + destino + '?text=' + encodeURIComponent(texto) + '","Enviar")');
+    formula_(aba.getRange(r, COL.ENVIAR), '=HYPERLINK("' + destino + 'text=' + encodeURIComponent(texto) + '","Enviar")');
     // Situação: "—" (sem resposta) ou "2 de 3 vão"
     formula_(aba.getRange(r, COL.SITUACAO),
       '=IF(COUNTIF(' + ABA_RESPOSTAS + '!B:B,A' + r + ')=0,"—",COUNTIFS(' + ABA_RESPOSTAS + '!B:B,A' + r + ',' +

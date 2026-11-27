@@ -162,9 +162,24 @@
 
   // A confirmação só funciona pelo link com código (?c=XXXXXX), que traz os nomes da planilha.
   // Sem código (ou código inválido): o convite aparece, mas no lugar do formulário fica um aviso.
+  // Link: ?c=CODIGO.NOME, com o nome em base64 (só letras, números, "-" e "_").
+  // Sem "&" nem espaços: o app do Planilhas no celular cortava o link no "&" ao abrir o WhatsApp.
+  // Links antigos (?c=CODIGO&para=Nome) continuam funcionando.
   const parametros = new URLSearchParams(location.search);
-  const codigo = (parametros.get("c") || "").trim().toUpperCase();
-  const paraLink = (parametros.get("para") || "").trim().slice(0, 80);
+  const [codigoBruto, nomeB64] = (parametros.get("c") || "").trim().split(".");
+  const codigo = (codigoBruto || "").toUpperCase();
+  const paraLink = (lerNomeBase64(nomeB64) || parametros.get("para") || "").trim().slice(0, 80);
+
+  function lerNomeBase64(txt) {
+    if (!txt) return "";
+    try {
+      const b64 = txt.replace(/-/g, "+").replace(/_/g, "/");
+      const bytes = Uint8Array.from(atob(b64 + "===".slice((b64.length + 3) % 4)), (ch) => ch.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    } catch (_) {
+      return "";
+    }
+  }
 
   function mostrarNomeNoPortao(nome) {
     if (!$("portao-nome") || !nome) return; // o portão pode já ter sido removido

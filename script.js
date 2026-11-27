@@ -210,6 +210,7 @@
     });
     if (info.respostas && Object.keys(info.respostas).length) {
       $("btn-enviar").textContent = "Atualizar confirmação";
+      $("texto-prazo").textContent = `Vocês já responderam! Se algo mudar, é só atualizar abaixo até ${fmtData(prazo)}.`;
     }
   }
 
@@ -279,7 +280,9 @@
       const vao = respostas.filter((r) => r.vai === "Sim").map((r) => r.nome);
       const quem = convite.nome;
       form.hidden = true;
+      $("texto-prazo").hidden = true; // já confirmou: o lembrete do prazo não faz mais sentido
       $("sucesso").hidden = false;
+      $("texto-prazo").textContent = `Se algo mudar, é só abrir este mesmo link de novo até ${fmtData(prazo)}.`;
       $("sucesso-texto").textContent = vao.length
         ? `${quem}, presença confirmada: ${listar(vao)}. Até dia ${fmtData(dataFesta)}!`
         : `Que pena, ${quem}! Obrigado por avisar.`;

@@ -221,6 +221,8 @@
       lista.appendChild(card);
       if (anterior) marcarCard(card, anterior);
     });
+    // recado enviado antes volta para o campo (se a pessoa apagar, ele é removido ao reenviar)
+    if (info.recado && !form.recado.value) form.recado.value = info.recado;
     if (info.respostas && Object.keys(info.respostas).length) {
       $("btn-enviar").textContent = "Atualizar confirmação";
       $("texto-prazo").textContent = `Vocês já responderam! Se algo mudar, é só atualizar abaixo até ${fmtData(prazo)}.`;

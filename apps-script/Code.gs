@@ -8,6 +8,8 @@
  *
  * Aba "Respostas": uma linha por PESSOA, dizendo se vai ou não. Se a família
  * responder de novo, as linhas dela são substituídas (não duplica).
+ *
+ * Aba "Recados": uma linha por CONVITE (família), com o recado para a Suellen.
  */
 
 // ⚠️ Troque pelo endereço do seu site no GitHub Pages (com a barra no final)
@@ -15,6 +17,7 @@ const URL_SITE = "https://pedrolucashs.github.io/convite-suellen/";
 
 const ABA_CONVIDADOS = "Convidados";
 const ABA_RESPOSTAS = "Respostas";
+const ABA_RECADOS = "Recados";
 
 // Colunas da aba Convidados
 const COL = { CODIGO: 1, CONVITE: 2, PESSOAS: 3, FONE: 4, LINK: 5, ENVIAR: 6, SITUACAO: 7 };
@@ -32,6 +35,7 @@ function onOpen() {
 function gerarCodigos() {
   const aba = abaConvidados_();
   abaRespostas_(); // precisa existir antes das fórmulas da coluna "Situação", que apontam para ela
+  abaRecados_();
   const ultima = aba.getLastRow();
   if (ultima < 2) {
     SpreadsheetApp.getUi().alert("Preencha os convidados na aba \"Convidados\" (a partir da linha 2).");
@@ -108,7 +112,12 @@ function doGet(e) {
           .filter((l) => String(l[1]) === codigo)
           .forEach((l) => (anteriores[String(l[3])] = String(l[4])));
       }
-      resposta = { ok: true, nome: convite.nome, pessoas: convite.pessoas, respostas: anteriores };
+      // recado anterior, para aparecer de novo no site
+      const linhaRecado = acharLinha_(abaRecados_(), codigo);
+      const recado = linhaRecado
+        ? String(abaRecados_().getRange(linhaRecado, 4).getValue()).replace(/^'/, "")
+        : "";
+      resposta = { ok: true, nome: convite.nome, pessoas: convite.pessoas, respostas: anteriores, recado: recado };
     }
   } catch (err) {
     // mostra o erro em vez da tela genérica do Google (ajuda a descobrir o problema)
@@ -141,9 +150,10 @@ function doPost(e) {
     const linhas = convite.pessoas.map((pessoa) => {
       const r = respostas.find((x) => x && String(x.nome) === pessoa);
       const vai = r && r.vai === "Sim" ? "Sim" : "Não";
-      return [agora, codigo, convite.nome, pessoa, vai, recado];
+      return [agora, codigo, convite.nome, pessoa, vai];
     });
     apagarRespostas_(codigo);
+    salvarRecado_(codigo, convite.nome, recado, agora);
 
     const aba = abaRespostas_();
     aba.getRange(aba.getLastRow() + 1, 1, linhas.length, linhas[0].length).setValues(linhas);
@@ -203,9 +213,11 @@ function abaRespostas_() {
   let aba = planilha.getSheetByName(ABA_RESPOSTAS);
   if (!aba) aba = planilha.insertSheet(ABA_RESPOSTAS);
   if (aba.getRange("A1").getValue() !== "Data/hora") {
-    aba.getRange("A1:F1").setValues([["Data/hora", "Código", "Convite", "Pessoa", "Vai?", "Recado"]]).setFontWeight("bold");
+    aba.getRange("A1:E1").setValues([["Data/hora", "Código", "Convite", "Pessoa", "Vai?"]]).setFontWeight("bold");
     aba.setFrozenRows(1);
   }
+  // versão antiga tinha a coluna "Recado" aqui; agora os recados ficam na aba "Recados"
+  if (aba.getRange("F1").getValue() === "Recado") aba.getRange("F:F").clearContent();
   // totais (refeitos se estiverem faltando)
   if (aba.getRange("I1").getValue() !== "Vão") {
     aba.getRange("I1:I3").setValues([["Vão"], ["Não vão"], ["Convites sem resposta"]]);
@@ -214,6 +226,41 @@ function abaRespostas_() {
     formula_(aba.getRange("J1"), '=COUNTIF(E:E,"Sim")');
     formula_(aba.getRange("J2"), '=COUNTIF(E:E,"Não")');
     formula_(aba.getRange("J3"), '=COUNTIF(' + ABA_CONVIDADOS + '!G:G,"—")');
+  }
+  return aba;
+}
+
+// Uma linha por convite: atualiza se já existe; recado apagado → remove a linha
+function salvarRecado_(codigo, convite, recado, quando) {
+  const aba = abaRecados_();
+  const linha = acharLinha_(aba, codigo);
+  if (!recado) {
+    if (linha) aba.deleteRow(linha);
+    return;
+  }
+  const valores = [[quando, codigo, convite, recado]];
+  if (linha) aba.getRange(linha, 1, 1, 4).setValues(valores);
+  else aba.getRange(aba.getLastRow() + 1, 1, 1, 4).setValues(valores);
+}
+
+// Número da linha (na coluna B = Código) ou 0 se não achar
+function acharLinha_(aba, codigo) {
+  if (aba.getLastRow() < 2) return 0;
+  const codigos = aba.getRange(2, 2, aba.getLastRow() - 1, 1).getValues();
+  const i = codigos.findIndex((l) => String(l[0]) === codigo);
+  return i >= 0 ? i + 2 : 0;
+}
+
+function abaRecados_() {
+  const planilha = SpreadsheetApp.getActiveSpreadsheet();
+  let aba = planilha.getSheetByName(ABA_RECADOS);
+  if (!aba) {
+    aba = planilha.insertSheet(ABA_RECADOS);
+    aba.getRange("A1:D1").setValues([["Data/hora", "Código", "Convite", "Recado"]]).setFontWeight("bold");
+    aba.setFrozenRows(1);
+    aba.setColumnWidth(3, 200);
+    aba.setColumnWidth(4, 500);
+    aba.getRange("D:D").setWrap(true);
   }
   return aba;
 }

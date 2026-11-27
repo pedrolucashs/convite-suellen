@@ -150,10 +150,15 @@
   const linkWhats = (texto) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`;
   $("link-whatsapp-encerrado").href = linkWhats("Olá! Sobre o convite dos 15 anos da Suellen...");
 
-  if (new Date() > prazo) {
+  // Prazo: conferido ao abrir e de novo na hora de enviar (a página pode ter ficado aberta)
+  const prazoPassou = () => new Date() > prazo;
+  function encerrar() {
     form.hidden = true;
+    $("texto-prazo").hidden = true;
+    $("sem-codigo").hidden = true;
     $("encerrado").hidden = false;
   }
+  if (prazoPassou()) encerrar();
 
   // A confirmação só funciona pelo link com código (?c=XXXXXX), que traz os nomes da planilha.
   // Sem código (ou código inválido): o convite aparece, mas no lugar do formulário fica um aviso.
@@ -223,9 +228,28 @@
     });
     // recado enviado antes volta para o campo (se a pessoa apagar, ele é removido ao reenviar)
     if (info.recado && !form.recado.value) form.recado.value = info.recado;
-    if (info.respostas && Object.keys(info.respostas).length) {
+    const jaRespondeu = info.respostas && Object.keys(info.respostas).length;
+    if (jaRespondeu) {
       $("btn-enviar").textContent = "Atualizar confirmação";
       $("texto-prazo").textContent = `Vocês já responderam! Se algo mudar, é só atualizar abaixo até ${fmtData(prazo)}.`;
+    }
+    if (prazoPassou()) mostrarResumo(info, jaRespondeu);
+  }
+
+  // Depois do prazo: mostra o que a família respondeu, no lugar do formulário
+  function mostrarResumo(info, jaRespondeu) {
+    const resumo = $("encerrado-resumo");
+    if (!jaRespondeu) {
+      resumo.textContent = "Não recebemos a confirmação de vocês.";
+    } else {
+      const vao = info.pessoas.filter((p) => info.respostas[p] === "Sim");
+      resumo.textContent = vao.length
+        ? `${vao.length === 1 ? "Presença confirmada" : "Presenças confirmadas"}: ${listar(vao)}.`
+        : "Vocês avisaram que não poderão ir.";
+    }
+    resumo.hidden = false;
+    if (jaRespondeu) {
+      $("encerrado-texto").textContent = "O prazo de confirmação terminou. Se algo mudou, fale com a família pelo WhatsApp:";
     }
   }
 
@@ -270,6 +294,11 @@
     const recado = form.recado.value.trim();
 
     if (!convite) return;
+    if (prazoPassou()) { // a página ficou aberta e o prazo passou nesse meio tempo
+      encerrar();
+      mostrarResumo(convite, convite.respostas && Object.keys(convite.respostas).length);
+      return;
+    }
     const respostas = []; // [{ nome, vai }]
     let faltou = null;
     document.querySelectorAll(".convidado").forEach((card) => {
@@ -302,7 +331,6 @@
       form.hidden = true;
       $("texto-prazo").hidden = true; // já confirmou: o lembrete do prazo não faz mais sentido
       $("sucesso").hidden = false;
-      $("texto-prazo").textContent = `Se algo mudar, é só abrir este mesmo link de novo até ${fmtData(prazo)}.`;
       $("sucesso-texto").textContent = vao.length
         ? `${quem}, presença confirmada: ${listar(vao)}. Até dia ${fmtData(dataFesta)}!`
         : `Que pena, ${quem}! Obrigado por avisar.`;

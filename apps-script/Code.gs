@@ -15,6 +15,9 @@
 // ⚠️ Troque pelo endereço do seu site no GitHub Pages (com a barra no final)
 const URL_SITE = "https://pedrolucashs.github.io/convite-suellen/";
 
+// ⚠️ Mesmo prazo do config.js do site. Depois dele, a planilha não aceita mais confirmações.
+const PRAZO = new Date("2027-01-15T23:59:59-03:00");
+
 const ABA_CONVIDADOS = "Convidados";
 const ABA_RESPOSTAS = "Respostas";
 const ABA_RECADOS = "Recados";
@@ -138,8 +141,8 @@ function doPost(e) {
     let respostas = [];
     try { respostas = JSON.parse(p.respostas || "[]"); } catch (err) { respostas = []; }
 
-    // só aceita confirmação vinda de um link com código válido
-    if (!convite) {
+    // só aceita confirmação vinda de um link com código válido e dentro do prazo
+    if (!convite || new Date() > PRAZO) {
       return ContentService.createTextOutput(JSON.stringify({ ok: false }))
         .setMimeType(ContentService.MimeType.JSON);
     }

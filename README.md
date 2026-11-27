@@ -47,7 +47,7 @@ Cada convite (uma pessoa ou uma família) tem um link próprio. Ao abrir, aparec
 
 Na aba **Respostas** fica uma linha por pessoa (Vai? Sim/Não), com os totais em J1 (vão), J2 (não vão) e J3 (convites sem resposta). Se a família responder de novo, as respostas dela são substituídas; ao reabrir o link, as escolhas anteriores já aparecem marcadas.
 
-Link **sem** código → convite individual: a pessoa digita o próprio nome e diz se vai.
+Link **sem** código (ou com código inválido) → o convite aparece normalmente, mas no lugar do formulário fica o aviso "use o link que você recebeu pelo WhatsApp". A planilha também recusa confirmações sem código válido.
 
 ## 2. Editar o `config.js`
 

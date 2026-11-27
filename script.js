@@ -155,21 +155,21 @@
     $("encerrado").hidden = false;
   }
 
-  // Convite com código (?c=XXXXXX): a lista de nomes vem da planilha.
-  // Sem código: convite individual (a pessoa digita o próprio nome).
+  // A confirmação só funciona pelo link com código (?c=XXXXXX), que traz os nomes da planilha.
+  // Sem código (ou código inválido): o convite aparece, mas no lugar do formulário fica um aviso.
   const codigo = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
   let convite = null; // { nome, pessoas: [...], respostas: {nome: "Sim"/"Não"} }
+  $("link-whatsapp-familia").href = linkWhats("Olá! Recebi o convite dos 15 anos da Suellen e queria falar sobre a confirmação.");
 
-  function modoIndividual() {
-    convite = null;
-    $("bloco-lista").hidden = true;
-    $("bloco-individual").hidden = false;
+  function semConfirmacao(texto) {
+    form.hidden = true;
+    if (texto) $("sem-codigo-texto").textContent = texto;
+    if (!$("encerrado").hidden) return; // depois do prazo, vale o aviso de prazo encerrado
+    $("sem-codigo").hidden = false;
   }
 
   function montarLista(info) {
     convite = info;
-    $("bloco-individual").hidden = true;
-    $("bloco-lista").hidden = false;
     $("lista-carregando").hidden = true;
     $("portao-nome").textContent = info.nome;
     $("portao-para").hidden = false;
@@ -220,18 +220,18 @@
     if (!document.querySelector(".convidado.faltando")) mostrarErro("");
   }
 
-  if (codigo) {
-    $("bloco-individual").hidden = true;
-    $("bloco-lista").hidden = false;
+  if (!codigo) {
+    semConfirmacao();
+  } else {
     fetch(`${CONFIG.urlPlanilha}?c=${encodeURIComponent(codigo)}`)
       .then((r) => r.json())
       .then((info) => {
         if (info.ok && Array.isArray(info.pessoas) && info.pessoas.length) montarLista(info);
-        else modoIndividual(); // código inválido → convite individual
+        else semConfirmacao("Não encontramos este convite. Confira se abriu o link completo que você recebeu pelo WhatsApp.");
       })
       .catch(() => {
         $("lista-carregando").textContent =
-          "Não foi possível carregar seu convite agora. Recarregue a página ou confirme pelo WhatsApp.";
+          "Não foi possível carregar seu convite agora. Recarregue a página ou fale com a família pelo WhatsApp.";
         $("btn-enviar").disabled = true;
       });
   }
@@ -247,31 +247,25 @@
     if (form.site.value) return; // robô
 
     const recado = form.recado.value.trim();
-    let respostas; // [{ nome, vai }]
 
-    if (convite) {
-      respostas = [];
-      let faltou = null;
-      document.querySelectorAll(".convidado").forEach((card) => {
-        const marcado = card.querySelector("input:checked");
-        if (!marcado) {
-          card.classList.add("faltando");
-          faltou = faltou || card;
-        } else {
-          respostas.push({ nome: card.dataset.nome, vai: marcado.value });
-        }
-      });
-      if (faltou) {
-        faltou.scrollIntoView({ behavior: semAnimacao ? "auto" : "smooth", block: "center" });
-        return mostrarErro("Marque se cada pessoa vai ou não vai.");
+    if (!convite) return;
+    const respostas = []; // [{ nome, vai }]
+    let faltou = null;
+    document.querySelectorAll(".convidado").forEach((card) => {
+      const marcado = card.querySelector("input:checked");
+      if (!marcado) {
+        card.classList.add("faltando");
+        faltou = faltou || card;
+      } else {
+        respostas.push({ nome: card.dataset.nome, vai: marcado.value });
       }
-    } else {
-      const nome = form.nome.value.trim();
-      if (nome.length < 3) return mostrarErro("Por favor, escreva seu nome completo.");
-      respostas = [{ nome, vai: form.presenca.value }];
+    });
+    if (faltou) {
+      faltou.scrollIntoView({ behavior: semAnimacao ? "auto" : "smooth", block: "center" });
+      return mostrarErro("Marque se cada pessoa vai ou não vai.");
     }
 
-    const dados = new URLSearchParams({ codigo: convite ? codigo : "", recado, respostas: JSON.stringify(respostas) });
+    const dados = new URLSearchParams({ codigo, recado, respostas: JSON.stringify(respostas) });
 
     const btn = $("btn-enviar");
     const textoBtn = btn.textContent;
@@ -283,11 +277,11 @@
       await fetch(CONFIG.urlPlanilha, { method: "POST", mode: "no-cors", body: dados });
 
       const vao = respostas.filter((r) => r.vai === "Sim").map((r) => r.nome);
-      const quem = convite ? convite.nome : respostas[0].nome.split(" ")[0];
+      const quem = convite.nome;
       form.hidden = true;
       $("sucesso").hidden = false;
       $("sucesso-texto").textContent = vao.length
-        ? `${quem}, presença confirmada${convite ? `: ${listar(vao)}` : ""}. Até dia ${fmtData(dataFesta)}!`
+        ? `${quem}, presença confirmada: ${listar(vao)}. Até dia ${fmtData(dataFesta)}!`
         : `Que pena, ${quem}! Obrigado por avisar.`;
       const msg = vao.length
         ? `Olá! Confirmando presença na festa de 15 anos da Suellen: ${listar(vao)}.`

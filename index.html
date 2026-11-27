@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#2f4637">
 
   <link rel="preload" href="fonts/great-vibes.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body class="fechado">
 
@@ -123,27 +123,11 @@
 
       <form id="form-rsvp" class="formulario" novalidate>
         <!-- Convite com código: lista com o nome de cada convidado -->
-        <fieldset class="campo" id="bloco-lista" hidden>
+        <fieldset class="campo" id="bloco-lista">
           <legend class="rotulo">Quem vai?</legend>
           <p class="carregando" id="lista-carregando">Carregando seu convite...</p>
           <div class="lista-convidados" id="lista-convidados"></div>
         </fieldset>
-
-        <!-- Convite sem código: individual -->
-        <div id="bloco-individual" class="bloco-individual">
-          <label class="campo">
-            <span class="rotulo">Seu nome completo</span>
-            <input type="text" name="nome" autocomplete="name" placeholder="Ex.: Maria da Silva">
-          </label>
-
-          <fieldset class="campo escolha">
-            <legend class="rotulo">Você vai?</legend>
-            <div class="pilulas">
-              <label class="pilula"><input type="radio" name="presenca" value="Sim" checked><span>Sim, estarei lá!</span></label>
-              <label class="pilula"><input type="radio" name="presenca" value="Não"><span>Não poderei ir</span></label>
-            </div>
-          </fieldset>
-        </div>
 
         <label class="campo">
           <span class="rotulo">Recado para a Suellen <em class="opcional">(opcional)</em></span>
@@ -161,6 +145,11 @@
         <p class="sucesso-titulo">Obrigado!</p>
         <p class="cartao-texto" id="sucesso-texto"></p>
         <a class="botao botao-claro" id="link-whatsapp" target="_blank" rel="noopener">Avisar também pelo WhatsApp</a>
+      </div>
+
+      <div id="sem-codigo" class="sucesso" hidden>
+        <p class="cartao-texto" id="sem-codigo-texto">Para confirmar sua presença, use o link que você recebeu pelo WhatsApp.</p>
+        <a class="botao" id="link-whatsapp-familia" target="_blank" rel="noopener">Falar com a família</a>
       </div>
 
       <div id="encerrado" class="sucesso" hidden>
@@ -209,7 +198,7 @@
     </symbol>
   </svg>
 
-  <script src="config.js?v=7"></script>
-  <script src="script.js?v=7"></script>
+  <script src="config.js?v=8"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>

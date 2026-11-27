@@ -120,23 +120,21 @@ function doPost(e) {
     let respostas = [];
     try { respostas = JSON.parse(p.respostas || "[]"); } catch (err) { respostas = []; }
 
-    let linhas;
+    // só aceita confirmação vinda de um link com código válido
+    if (!convite) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const agora = new Date();
     const recado = limpar_(p.recado);
-
-    if (convite) {
-      // só aceita nomes que estão na lista daquele convite
-      linhas = convite.pessoas.map((pessoa) => {
-        const r = respostas.find((x) => x && String(x.nome) === pessoa);
-        const vai = r && r.vai === "Sim" ? "Sim" : "Não";
-        return [agora, codigo, convite.nome, pessoa, vai, recado];
-      });
-      apagarRespostas_(codigo);
-    } else {
-      // sem código: convite individual, só a primeira resposta conta
-      const r = respostas[0] || {};
-      linhas = [[agora, "", "(sem código)", limpar_(r.nome), r.vai === "Sim" ? "Sim" : "Não", recado]];
-    }
+    // só aceita nomes que estão na lista daquele convite
+    const linhas = convite.pessoas.map((pessoa) => {
+      const r = respostas.find((x) => x && String(x.nome) === pessoa);
+      const vai = r && r.vai === "Sim" ? "Sim" : "Não";
+      return [agora, codigo, convite.nome, pessoa, vai, recado];
+    });
+    apagarRespostas_(codigo);
 
     const aba = abaRespostas_();
     aba.getRange(aba.getLastRow() + 1, 1, linhas.length, linhas[0].length).setValues(linhas);

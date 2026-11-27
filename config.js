@@ -6,7 +6,7 @@ const CONFIG = {
   dataFesta: "2027-01-30T19:00:00-03:00",
 
   // Até quando dá para confirmar (último dia, 23:59)
-  prazoConfirmacao: "2027-01-15T23:59:59-03:00",
+  prazoConfirmacao: "2026-01-15T23:59:59-03:00",
 
   // Local
   localNome: "NOME DO SALÃO / ESPAÇO",

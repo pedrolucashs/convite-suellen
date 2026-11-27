@@ -110,7 +110,9 @@ header, main, footer { position: relative; z-index: 1; }
 }
 .portao-para span { font-family: var(--caps); font-size: .78rem; letter-spacing: .3em; text-transform: uppercase; padding-left: .3em; }
 .portao-para strong { font-family: var(--script); font-weight: 400; font-size: clamp(2.2rem, 10vw, 3rem); color: #f7e6c4; line-height: 1.2; }
-body.aberto .portao-para { opacity: 0; }
+.portao-para:not([hidden]) { animation: surgir 1.2s ease both; }
+@keyframes surgir { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+body.aberto .portao-para { opacity: 0; animation: none; }
 
 body.aberto .porta-esq { transform: rotateY(-105deg); }
 body.aberto .porta-dir { transform: rotateY(105deg); }

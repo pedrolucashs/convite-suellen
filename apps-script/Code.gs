@@ -57,7 +57,8 @@ function gerarCodigos() {
       criados++;
     }
 
-    const link = URL_SITE + "?c=" + codigo;
+    // o nome vai no link para o portão mostrar na hora, sem esperar a planilha responder
+    const link = URL_SITE + "?c=" + codigo + "&para=" + encodeURIComponent(convite).replace(/%20/g, "+");
     const texto = "Olá, " + convite + "! 🌸\n\nCom muita alegria, convidamos você para a festa de 15 anos da Suellen.\n" +
       "Abra o convite e confirme sua presença:\n" + link;
     // com telefone: abre direto a conversa; sem telefone: o WhatsApp pede para escolher o contato

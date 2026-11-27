@@ -157,7 +157,21 @@
 
   // A confirmação só funciona pelo link com código (?c=XXXXXX), que traz os nomes da planilha.
   // Sem código (ou código inválido): o convite aparece, mas no lugar do formulário fica um aviso.
-  const codigo = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
+  const parametros = new URLSearchParams(location.search);
+  const codigo = (parametros.get("c") || "").trim().toUpperCase();
+  const paraLink = (parametros.get("para") || "").trim().slice(0, 80);
+
+  function mostrarNomeNoPortao(nome) {
+    if (!$("portao-nome") || !nome) return; // o portão pode já ter sido removido
+    $("portao-nome").textContent = nome;
+    $("portao-para").hidden = false;
+  }
+  // nome que veio no link: aparece na hora (a planilha confirma depois)
+  if (codigo && paraLink) {
+    mostrarNomeNoPortao(paraLink);
+    $("saudacao").textContent = `Olá, ${paraLink}!`;
+    $("saudacao").hidden = false;
+  }
   let convite = null; // { nome, pessoas: [...], respostas: {nome: "Sim"/"Não"} }
   $("link-whatsapp-familia").href = linkWhats("Olá! Recebi o convite dos 15 anos da Suellen e queria falar sobre a confirmação.");
 
@@ -171,11 +185,7 @@
   function montarLista(info) {
     convite = info;
     $("lista-carregando").hidden = true;
-    // o portão pode já ter sido removido (a pessoa abriu antes da planilha responder)
-    if ($("portao-nome")) {
-      $("portao-nome").textContent = info.nome;
-      $("portao-para").hidden = false;
-    }
+    mostrarNomeNoPortao(info.nome);
     $("saudacao").textContent = `Olá, ${info.nome}!`;
     $("saudacao").hidden = false;
 
@@ -231,7 +241,10 @@
       .then((r) => r.json())
       .then((info) => {
         if (info.ok && Array.isArray(info.pessoas) && info.pessoas.length) montarLista(info);
-        else semConfirmacao("Não encontramos este convite. Confira se abriu o link completo que você recebeu pelo WhatsApp.");
+        else {
+          $("saudacao").hidden = true;
+          semConfirmacao("Não encontramos este convite. Confira se abriu o link completo que você recebeu pelo WhatsApp.");
+        }
       })
       .catch((erro) => {
         console.error("Convite:", erro);

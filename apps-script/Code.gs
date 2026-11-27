@@ -94,17 +94,23 @@ function doGet(e) {
   if (!codigo) {
     return ContentService.createTextOutput("Convite da Suellen: recebendo confirmações ✔");
   }
-  const convite = buscarConvite_(codigo);
-  let resposta = { ok: false };
-  if (convite) {
-    const anteriores = {};
-    const aba = abaRespostas_();
-    if (aba.getLastRow() > 1) {
-      aba.getRange(2, 1, aba.getLastRow() - 1, 5).getValues()
-        .filter((l) => String(l[1]) === codigo)
-        .forEach((l) => (anteriores[String(l[3])] = String(l[4])));
+  let resposta;
+  try {
+    const convite = buscarConvite_(codigo);
+    resposta = { ok: false };
+    if (convite) {
+      const anteriores = {};
+      const aba = abaRespostas_();
+      if (aba.getLastRow() > 1) {
+        aba.getRange(2, 1, aba.getLastRow() - 1, 5).getValues()
+          .filter((l) => String(l[1]) === codigo)
+          .forEach((l) => (anteriores[String(l[3])] = String(l[4])));
+      }
+      resposta = { ok: true, nome: convite.nome, pessoas: convite.pessoas, respostas: anteriores };
     }
-    resposta = { ok: true, nome: convite.nome, pessoas: convite.pessoas, respostas: anteriores };
+  } catch (err) {
+    // mostra o erro em vez da tela genérica do Google (ajuda a descobrir o problema)
+    resposta = { ok: false, erro: String(err && err.stack || err) };
   }
   return ContentService.createTextOutput(JSON.stringify(resposta))
     .setMimeType(ContentService.MimeType.JSON);

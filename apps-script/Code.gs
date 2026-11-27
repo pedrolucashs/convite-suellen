@@ -31,6 +31,7 @@ function onOpen() {
 
 function gerarCodigos() {
   const aba = abaConvidados_();
+  abaRespostas_(); // precisa existir antes das fórmulas da coluna "Situação", que apontam para ela
   const ultima = aba.getLastRow();
   if (ultima < 2) {
     SpreadsheetApp.getUi().alert("Preencha os convidados na aba \"Convidados\" (a partir da linha 2).");
@@ -65,14 +66,13 @@ function gerarCodigos() {
     const destino = fone ? "https://wa.me/" + fone : "https://wa.me/";
 
     aba.getRange(r, COL.LINK).setValue(link);
-    aba.getRange(r, COL.ENVIAR).setFormula('=HYPERLINK("' + destino + '?text=' + encodeURIComponent(texto) + '","Enviar")');
+    formula_(aba.getRange(r, COL.ENVIAR), '=HYPERLINK("' + destino + '?text=' + encodeURIComponent(texto) + '","Enviar")');
     // Situação: "—" (sem resposta) ou "2 de 3 vão"
-    aba.getRange(r, COL.SITUACAO).setFormula(
+    formula_(aba.getRange(r, COL.SITUACAO),
       '=IF(COUNTIF(' + ABA_RESPOSTAS + '!B:B,A' + r + ')=0,"—",COUNTIFS(' + ABA_RESPOSTAS + '!B:B,A' + r + ',' +
       ABA_RESPOSTAS + '!E:E,"Sim")&" de "&COUNTIF(' + ABA_RESPOSTAS + '!B:B,A' + r + ')&" vão")');
   });
 
-  abaRespostas_(); // garante que a aba de respostas existe (as fórmulas apontam para ela)
   SpreadsheetApp.getUi().alert(criados + " código(s) novo(s) criado(s). Use o link \"Enviar\" de cada linha para mandar pelo WhatsApp.");
 }
 
@@ -194,18 +194,38 @@ function abaConvidados_() {
 function abaRespostas_() {
   const planilha = SpreadsheetApp.getActiveSpreadsheet();
   let aba = planilha.getSheetByName(ABA_RESPOSTAS);
-  if (!aba) {
-    aba = planilha.insertSheet(ABA_RESPOSTAS);
-    aba.appendRow(["Data/hora", "Código", "Convite", "Pessoa", "Vai?", "Recado"]);
+  if (!aba) aba = planilha.insertSheet(ABA_RESPOSTAS);
+  if (aba.getRange("A1").getValue() !== "Data/hora") {
+    aba.getRange("A1:F1").setValues([["Data/hora", "Código", "Convite", "Pessoa", "Vai?", "Recado"]]).setFontWeight("bold");
     aba.setFrozenRows(1);
-    aba.getRange("A1:F1").setFontWeight("bold");
+  }
+  // totais (refeitos se estiverem faltando)
+  if (aba.getRange("I1").getValue() !== "Vão") {
     aba.getRange("I1:I3").setValues([["Vão"], ["Não vão"], ["Convites sem resposta"]]);
-    aba.getRange("J1").setFormula('=COUNTIF(E:E,"Sim")');
-    aba.getRange("J2").setFormula('=COUNTIF(E:E,"Não")');
-    aba.getRange("J3").setFormula('=COUNTIF(' + ABA_CONVIDADOS + '!G:G,"—")');
     aba.getRange("I1:J3").setFontWeight("bold");
+    aba.setColumnWidth(9, 170);
+    formula_(aba.getRange("J1"), '=COUNTIF(E:E,"Sim")');
+    formula_(aba.getRange("J2"), '=COUNTIF(E:E,"Não")');
+    formula_(aba.getRange("J3"), '=COUNTIF(' + ABA_CONVIDADOS + '!G:G,"—")');
   }
   return aba;
+}
+
+// Planilhas em português usam ";" entre os argumentos das fórmulas, em inglês usam ",".
+// Na primeira fórmula testa com vírgula; se a planilha não entender, passa a usar ";".
+let separador_ = null;
+function formula_(celula, f) {
+  if (separador_ === ";") return celula.setFormula(f.replace(/,/g, ";"));
+  celula.setFormula(f);
+  if (separador_ === null) {
+    SpreadsheetApp.flush();
+    if (String(celula.getDisplayValue()).indexOf("#ERROR") === 0) {
+      separador_ = ";";
+      celula.setFormula(f.replace(/,/g, ";"));
+    } else {
+      separador_ = ",";
+    }
+  }
 }
 
 // Evita que alguém injete fórmula na planilha (ex.: começar o nome com "=")

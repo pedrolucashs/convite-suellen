@@ -147,37 +147,6 @@
 
   // ---------- Formulário ----------
   const form = $("form-rsvp");
-  const qtd = $("inp-quantidade");
-  qtd.max = CONFIG.maxPessoas;
-
-  // Mantém o número entre 1 e o máximo, atualiza "pessoa/pessoas" e os botões
-  function atualizarQuantidade(valor, corrigirCampo) {
-    let n = parseInt(valor, 10);
-    if (isNaN(n)) n = 1;
-    n = Math.min(Math.max(n, 1), CONFIG.maxPessoas);
-    if (corrigirCampo) qtd.value = n;
-    $("sufixo-quantidade").textContent = n === 1 ? "pessoa" : "pessoas";
-    $("btn-menos").disabled = n <= 1;
-    $("btn-mais").disabled = n >= CONFIG.maxPessoas;
-    $("bloco-acompanhantes").hidden = n <= 1;
-    return n;
-  }
-  $("btn-menos").addEventListener("click", () => atualizarQuantidade(Number(qtd.value) - 1, true));
-  $("btn-mais").addEventListener("click", () => atualizarQuantidade(Number(qtd.value) + 1, true));
-  // Enquanto digita, atualiza o texto; se passar do máximo, corrige na hora
-  qtd.addEventListener("input", () => {
-    if (qtd.value !== "") atualizarQuantidade(qtd.value, Number(qtd.value) > CONFIG.maxPessoas || Number(qtd.value) < 1);
-  });
-  qtd.addEventListener("blur", () => atualizarQuantidade(qtd.value, true));
-  qtd.addEventListener("focus", () => qtd.select());
-  atualizarQuantidade(1, true);
-
-  form.querySelectorAll("input[name=presenca]").forEach((r) =>
-    r.addEventListener("change", () => {
-      $("bloco-pessoas").hidden = form.presenca.value !== "Sim";
-    })
-  );
-
   const linkWhats = (texto) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`;
   $("link-whatsapp-encerrado").href = linkWhats("Olá! Sobre o convite dos 15 anos da Suellen...");
 
@@ -186,14 +155,86 @@
     $("encerrado").hidden = false;
   }
 
-  // Máscara simples de telefone
-  form.telefone.addEventListener("input", (e) => {
-    const d = e.target.value.replace(/\D/g, "").slice(0, 11);
-    let v = d;
-    if (d.length > 2) v = `(${d.slice(0, 2)}) ${d.slice(2)}`;
-    if (d.length > 7) v = `(${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3, 7)}-${d.slice(7)}`;
-    e.target.value = v;
-  });
+  // Convite com código (?c=XXXXXX): a lista de nomes vem da planilha.
+  // Sem código: convite individual (a pessoa digita o próprio nome).
+  const codigo = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
+  let convite = null; // { nome, pessoas: [...], respostas: {nome: "Sim"/"Não"} }
+
+  function modoIndividual() {
+    convite = null;
+    $("bloco-lista").hidden = true;
+    $("bloco-individual").hidden = false;
+  }
+
+  function montarLista(info) {
+    convite = info;
+    $("bloco-individual").hidden = true;
+    $("bloco-lista").hidden = false;
+    $("lista-carregando").hidden = true;
+    $("portao-nome").textContent = info.nome;
+    $("portao-para").hidden = false;
+    $("saudacao").textContent = `Olá, ${info.nome}!`;
+    $("saudacao").hidden = false;
+
+    const lista = $("lista-convidados");
+    lista.innerHTML = "";
+    info.pessoas.forEach((pessoa, i) => {
+      const anterior = (info.respostas || {})[pessoa];
+      const card = document.createElement("div");
+      card.className = "convidado";
+      card.dataset.nome = pessoa;
+      const nome = document.createElement("span");
+      nome.className = "convidado-nome";
+      nome.textContent = pessoa;
+      const pilulas = document.createElement("div");
+      pilulas.className = "pilulas";
+      pilulas.setAttribute("role", "radiogroup");
+      pilulas.setAttribute("aria-label", pessoa);
+      [["Sim", "Vai"], ["Não", "Não vai"]].forEach(([valor, texto]) => {
+        const lab = document.createElement("label");
+        lab.className = "pilula" + (valor === "Não" ? " pilula-nao" : "");
+        const inp = document.createElement("input");
+        inp.type = "radio";
+        inp.name = `pessoa-${i}`;
+        inp.value = valor;
+        if (anterior === valor) inp.checked = true;
+        inp.addEventListener("change", () => marcarCard(card, valor));
+        const sp = document.createElement("span");
+        sp.textContent = texto;
+        lab.append(inp, sp);
+        pilulas.appendChild(lab);
+      });
+      card.append(nome, pilulas);
+      lista.appendChild(card);
+      if (anterior) marcarCard(card, anterior);
+    });
+    if (info.respostas && Object.keys(info.respostas).length) {
+      $("btn-enviar").textContent = "Atualizar confirmação";
+    }
+  }
+
+  function marcarCard(card, valor) {
+    card.classList.toggle("vai", valor === "Sim");
+    card.classList.toggle("nao-vai", valor === "Não");
+    card.classList.remove("faltando");
+    if (!document.querySelector(".convidado.faltando")) mostrarErro("");
+  }
+
+  if (codigo) {
+    $("bloco-individual").hidden = true;
+    $("bloco-lista").hidden = false;
+    fetch(`${CONFIG.urlPlanilha}?c=${encodeURIComponent(codigo)}`)
+      .then((r) => r.json())
+      .then((info) => {
+        if (info.ok && Array.isArray(info.pessoas) && info.pessoas.length) montarLista(info);
+        else modoIndividual(); // código inválido → convite individual
+      })
+      .catch(() => {
+        $("lista-carregando").textContent =
+          "Não foi possível carregar seu convite agora. Recarregue a página ou confirme pelo WhatsApp.";
+        $("btn-enviar").disabled = true;
+      });
+  }
 
   function mostrarErro(msg) {
     $("erro-form").textContent = msg;
@@ -203,25 +244,37 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     mostrarErro("");
-
-    const nome = form.nome.value.trim();
-    const telefone = form.telefone.value.trim();
-    const vai = form.presenca.value === "Sim";
-    const quantidade = vai ? atualizarQuantidade(qtd.value, true) : 0;
-    const acompanhantes = vai && quantidade > 1 ? form.acompanhantes.value.trim() : "";
-
-    if (nome.length < 3) return mostrarErro("Por favor, escreva seu nome completo.");
-    if (telefone.replace(/\D/g, "").length < 10) return mostrarErro("Confira o número de WhatsApp.");
     if (form.site.value) return; // robô
 
-    const dados = new URLSearchParams({
-      nome, telefone,
-      presenca: vai ? "Sim" : "Não",
-      quantidade, acompanhantes,
-      recado: form.recado.value.trim(),
-    });
+    const recado = form.recado.value.trim();
+    let respostas; // [{ nome, vai }]
+
+    if (convite) {
+      respostas = [];
+      let faltou = null;
+      document.querySelectorAll(".convidado").forEach((card) => {
+        const marcado = card.querySelector("input:checked");
+        if (!marcado) {
+          card.classList.add("faltando");
+          faltou = faltou || card;
+        } else {
+          respostas.push({ nome: card.dataset.nome, vai: marcado.value });
+        }
+      });
+      if (faltou) {
+        faltou.scrollIntoView({ behavior: semAnimacao ? "auto" : "smooth", block: "center" });
+        return mostrarErro("Marque se cada pessoa vai ou não vai.");
+      }
+    } else {
+      const nome = form.nome.value.trim();
+      if (nome.length < 3) return mostrarErro("Por favor, escreva seu nome completo.");
+      respostas = [{ nome, vai: form.presenca.value }];
+    }
+
+    const dados = new URLSearchParams({ codigo: convite ? codigo : "", recado, respostas: JSON.stringify(respostas) });
 
     const btn = $("btn-enviar");
+    const textoBtn = btn.textContent;
     btn.disabled = true;
     btn.textContent = "Enviando...";
 
@@ -229,23 +282,29 @@
       // no-cors: o Apps Script não devolve cabeçalho CORS; a gravação acontece mesmo assim
       await fetch(CONFIG.urlPlanilha, { method: "POST", mode: "no-cors", body: dados });
 
+      const vao = respostas.filter((r) => r.vai === "Sim").map((r) => r.nome);
+      const quem = convite ? convite.nome : respostas[0].nome.split(" ")[0];
       form.hidden = true;
       $("sucesso").hidden = false;
-      const primeiro = nome.split(" ")[0];
-      $("sucesso-texto").textContent = vai
-        ? `${primeiro}, sua presença foi confirmada${quantidade > 1 ? ` (${quantidade} pessoas)` : ""}. Até dia ${fmtData(dataFesta)}!`
-        : `Que pena, ${primeiro}! Obrigado por avisar.`;
-      const msg = vai
-        ? `Olá! Confirmo minha presença na festa de 15 anos da Suellen. Nome: ${nome}. Total de pessoas: ${quantidade}.`
-        : `Olá! Infelizmente não poderei ir à festa de 15 anos da Suellen. Nome: ${nome}.`;
+      $("sucesso-texto").textContent = vao.length
+        ? `${quem}, presença confirmada${convite ? `: ${listar(vao)}` : ""}. Até dia ${fmtData(dataFesta)}!`
+        : `Que pena, ${quem}! Obrigado por avisar.`;
+      const msg = vao.length
+        ? `Olá! Confirmando presença na festa de 15 anos da Suellen: ${listar(vao)}.`
+        : `Olá! Infelizmente não poderemos ir à festa de 15 anos da Suellen. (${quem})`;
       $("link-whatsapp").href = linkWhats(msg);
       $("confirmar").scrollIntoView({ behavior: semAnimacao ? "auto" : "smooth" });
     } catch (err) {
       mostrarErro("Não foi possível enviar agora. Verifique sua internet ou confirme pelo WhatsApp.");
       btn.disabled = false;
-      btn.textContent = "Enviar confirmação";
+      btn.textContent = textoBtn;
     }
   });
+
+  // "Ana, Bia e Caio"
+  function listar(nomes) {
+    return nomes.length < 2 ? nomes.join("") : nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1];
+  }
 
   // ---------- Presentes ----------
   const lista = $("lista-presentes");

@@ -18,7 +18,7 @@
   <meta name="theme-color" content="#2f4637">
 
   <link rel="preload" href="fonts/great-vibes.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body class="fechado">
 
@@ -29,6 +29,11 @@
   <div class="portao" id="portao">
     <div class="porta porta-esq"><div class="porta-moldura"></div></div>
     <div class="porta porta-dir"><div class="porta-moldura"></div></div>
+
+    <p class="portao-para" id="portao-para" hidden>
+      <span>convite especial para</span>
+      <strong id="portao-nome"></strong>
+    </p>
 
     <button type="button" class="selo" id="btn-abrir" aria-label="Abrir o convite">
       <span class="selo-anel">
@@ -113,44 +118,31 @@
     <section id="confirmar" class="cartao revelar">
       <img class="ramo ramo-titulo" src="img/ramo.svg" alt="" aria-hidden="true">
       <h2>Confirme sua presença</h2>
+      <p class="cartao-texto saudacao" id="saudacao" hidden></p>
       <p class="cartao-texto" id="texto-prazo"></p>
 
       <form id="form-rsvp" class="formulario" novalidate>
-        <label class="campo">
-          <span class="rotulo">Seu nome completo</span>
-          <input type="text" name="nome" required autocomplete="name" placeholder="Ex.: Maria da Silva">
-        </label>
-
-        <label class="campo">
-          <span class="rotulo">WhatsApp</span>
-          <input type="tel" name="telefone" required autocomplete="tel" inputmode="tel" placeholder="(88) 9 9999-9999">
-        </label>
-
-        <fieldset class="campo escolha">
-          <legend class="rotulo">Você vai?</legend>
-          <div class="pilulas">
-            <label class="pilula"><input type="radio" name="presenca" value="Sim" checked><span>Sim, estarei lá!</span></label>
-            <label class="pilula"><input type="radio" name="presenca" value="Não"><span>Não poderei ir</span></label>
-          </div>
+        <!-- Convite com código: lista com o nome de cada convidado -->
+        <fieldset class="campo" id="bloco-lista" hidden>
+          <legend class="rotulo">Quem vai?</legend>
+          <p class="carregando" id="lista-carregando">Carregando seu convite...</p>
+          <div class="lista-convidados" id="lista-convidados"></div>
         </fieldset>
 
-        <div id="bloco-pessoas" class="bloco-pessoas">
-          <div class="campo">
-            <label class="rotulo" for="inp-quantidade">Quantas pessoas no total (contando você)?</label>
-            <div class="contador">
-              <button type="button" class="contador-btn" id="btn-menos" aria-label="Diminuir">−</button>
-              <div class="contador-valor">
-                <input type="number" name="quantidade" id="inp-quantidade" value="1" min="1" inputmode="numeric">
-                <span class="contador-sufixo" id="sufixo-quantidade">pessoa</span>
-              </div>
-              <button type="button" class="contador-btn" id="btn-mais" aria-label="Aumentar">+</button>
-            </div>
-          </div>
-
-          <label class="campo" id="bloco-acompanhantes" hidden>
-            <span class="rotulo">Nome dos acompanhantes</span>
-            <textarea name="acompanhantes" rows="2" placeholder="Um nome por linha"></textarea>
+        <!-- Convite sem código: individual -->
+        <div id="bloco-individual" class="bloco-individual">
+          <label class="campo">
+            <span class="rotulo">Seu nome completo</span>
+            <input type="text" name="nome" autocomplete="name" placeholder="Ex.: Maria da Silva">
           </label>
+
+          <fieldset class="campo escolha">
+            <legend class="rotulo">Você vai?</legend>
+            <div class="pilulas">
+              <label class="pilula"><input type="radio" name="presenca" value="Sim" checked><span>Sim, estarei lá!</span></label>
+              <label class="pilula"><input type="radio" name="presenca" value="Não"><span>Não poderei ir</span></label>
+            </div>
+          </fieldset>
         </div>
 
         <label class="campo">
@@ -217,7 +209,7 @@
     </symbol>
   </svg>
 
-  <script src="config.js?v=4"></script>
-  <script src="script.js?v=4"></script>
+  <script src="config.js?v=7"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>

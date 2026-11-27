@@ -15,10 +15,7 @@ const CONFIG = {
   linkMapa: "https://maps.google.com/?q=Rua+Alegre+123",
 
   // WhatsApp de quem recebe as confirmações: 55 + DDD + número, só dígitos
-  whatsapp: "5588999999999",
-
-  // Máximo de pessoas por confirmação (contando o convidado)
-  maxPessoas: 4,
+  whatsapp: "558896301035",
 
   // URL do Google Apps Script (passo a passo no README.md)
   urlPlanilha: "https://script.google.com/macros/s/AKfycbzFIswYFENf2YXoOsTRG03NkcVIiQzRL3BhWF2SSKXiPFlFWIDbqtPJ2McsRWE6ym4A0Q/exec",
@@ -27,11 +24,11 @@ const CONFIG = {
   presentes: [
     "Perfumes e cremes",
     "Bijuterias e acessórios",
-    "Roupas (tamanho M)",
+    "Roupas (tamanho P)",
     "Livros",
   ],
 
   // PIX: deixe chavePix vazia "" para esconder
-  chavePix: "suachave@email.com",
+  chavePix: "sususuellen@susu.com",
   nomePix: "Nome do titular – Banco",
 };
